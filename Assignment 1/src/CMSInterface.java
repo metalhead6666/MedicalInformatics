@@ -43,4 +43,12 @@ public class CMSInterface{
     public static void singleTuneRequest(int id) {
 
     }
+
+    private static byte[] changeBytesPosition(byte[] byteArray){
+        byte temp = byteArray[1];
+        byteArray[1] = byteArray[0];
+        byteArray[0] = temp;
+
+        return byteArray;
+    }
 }
