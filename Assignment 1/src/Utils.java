@@ -25,8 +25,8 @@ public class Utils {
 	static final int SPI_NUMERIC_STRING = 18;
 	static final int SPI_ABS_TIME_STAMP = 1;
 
-	static int destino = 32865;
-	static int origem = 10;
+	static int DST_ID = 32865;
+	static int SRC_ID = 10;
 
 	/**
 	 * Lists all available communication ports (COM and LPT) on this machine

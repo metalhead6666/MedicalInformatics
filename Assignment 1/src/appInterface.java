@@ -201,7 +201,7 @@ public class appInterface extends javax.swing.JFrame {
 		disconnButton.setEnabled(true);
 		getParButton.setEnabled(true);
 		invertCheckBox.setEnabled(true);
-		connected = CMSInterface.connect(portComboBox.getSelectedItem());
+		connected = CMSInterface.connect(this.port);
 	}
 
 	void disconnButton_actionPerformed(java.awt.event.ActionEvent event) {

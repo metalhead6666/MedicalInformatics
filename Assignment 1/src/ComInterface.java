@@ -30,8 +30,6 @@ public class ComInterface {
 	 * Creates a new connection to a specific port.
 	 * @param port The port to connect
 	 */
-
-
 	public ComInterface(String port) {
 		portList = CommPortIdentifier.getPortIdentifiers();
 		while (portList.hasMoreElements()) {
