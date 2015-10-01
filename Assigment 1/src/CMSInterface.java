@@ -12,9 +12,8 @@ import javax.comm.CommPortIdentifier;
 public class CMSInterface {
 
     public static boolean connect(Object item) {
-    	CommPortIdentifier port = (CommPortIdentifier) item;
-    	
-    	return true; // CONNECTED
+
+        return true; // CONNECTED
     }
 
     public static boolean disconnect() {
