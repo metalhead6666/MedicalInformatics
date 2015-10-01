@@ -13,15 +13,22 @@ import java.nio.ByteBuffer;
 
 
 public class CMSInterface{
-    private static byte BH = 27;
-    private int TOTAL_LENGTH = 6;
+    private static byte START_MESSAGE = 0x1b;
+    private final static int DEFAULT_LENGTH = 6; /* LENGTH + SRC_ID + DST_ID */
+    private final static int DEFAULT_SIZE = 2;
+    private static byte[] DST_ID;
+    private static byte[] SRC_ID;
+    private static byte[] LENGTH;
 
     public static boolean connect(ComInterface comInterface) {
-        byte CONNECT_RQS = 1;
-        //byte[] LENGTH = ByteBuffer.allocate(2).putInt(Utils.DST_ID + Utils.SRC_ID + )
+        byte[] CONNECT_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putInt(1).array();
 
+        DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putInt(Utils.DST_ID).array();
+        SRC_ID = ByteBuffer.allocate(DEFAULT_SIZE).putInt(Utils.SRC_ID).array();
 
-        comInterface.writeBytes();
+        //LENGTH = ByteBuffer.allocate(2).putInt(Utils.DST_ID + Utils.SRC_ID + )
+        //comInterface.writeBytes();
+
         return true; // CONNECTED
     }
 
