@@ -1,6 +1,3 @@
-import javax.comm.CommPort;
-import javax.comm.CommPortIdentifier;
-import javax.comm.CommPortOwnershipListener;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -24,20 +21,18 @@ public class CMSInterface{
     public static boolean connect(ComInterface comInterface){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         byte[] finalByteArray;
-        byte[] CONNECT_REQ = new byte[DEFAULT_SIZE];
+        byte[] CONNECT_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) 1).array();
         byte[] TICK_PERIOD = new byte[DEFAULT_SIZE];
         //DST_ID = new byte[DEFAULT_SIZE];
         //SRC_ID = new byte[DEFAULT_SIZE];
         //LENGTH = new byte[DEFAULT_SIZE];
 
-        CONNECT_REQ[0] = 1;
-
-        DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putInt(Utils.DST_ID).array();
+        DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short)Utils.DST_ID).array();
         DST_ID = changeBytesPosition(DST_ID);
-        SRC_ID = ByteBuffer.allocate(DEFAULT_SIZE).putInt(Utils.SRC_ID).array();
+        SRC_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short)Utils.SRC_ID).array();
         SRC_ID = changeBytesPosition(SRC_ID);
 
-        LENGTH = ByteBuffer.allocate(2).putInt(DEFAULT_LENGTH + DEFAULT_SIZE * 2).array();
+        LENGTH = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short)(DEFAULT_LENGTH + DEFAULT_SIZE * 2)).array();
         LENGTH = changeBytesPosition(LENGTH);
 
         outputStream.write(START_MESSAGE);

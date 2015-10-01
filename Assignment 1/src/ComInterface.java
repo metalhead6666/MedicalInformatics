@@ -95,6 +95,7 @@ public class ComInterface {
 			outputStream.flush();
 		} catch (Exception e) {
 			System.out.println("Error writing to COM port");
+			e.printStackTrace();
 		}
 	}
 
