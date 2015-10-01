@@ -24,10 +24,14 @@ public class CMSInterface{
     public static boolean connect(ComInterface comInterface){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         byte[] finalByteArray;
-        byte[] CONNECT_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putInt(1).array();
-        byte[] TICK_PERIOD = new byte[2];
+        byte[] CONNECT_REQ = new byte[DEFAULT_SIZE];
+        byte[] TICK_PERIOD = new byte[DEFAULT_SIZE];
+        //DST_ID = new byte[DEFAULT_SIZE];
+        //SRC_ID = new byte[DEFAULT_SIZE];
+        //LENGTH = new byte[DEFAULT_SIZE];
 
-        CONNECT_REQ = changeBytesPosition(CONNECT_REQ);
+        CONNECT_REQ[0] = 1;
+
         DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putInt(Utils.DST_ID).array();
         DST_ID = changeBytesPosition(DST_ID);
         SRC_ID = ByteBuffer.allocate(DEFAULT_SIZE).putInt(Utils.SRC_ID).array();
