@@ -28,6 +28,12 @@ public class Utils {
 	static int DST_ID = 32865;
 	static int SRC_ID = 10;
 
+    static int CONNECT_REQ = 1;
+    static int CONNECT_RES = 2;
+
+    static int DISCONNECT_REQ = 7;
+    static int DISCONNECT_RES = 8;
+
 	/**
 	 * Lists all available communication ports (COM and LPT) on this machine
 	 * @return Enumeration with all the ports
