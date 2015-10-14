@@ -6,7 +6,7 @@ class Semaphore {
         this.init = init;
     }
 
-    synchronized void espera() {
+    synchronized void release() {
         while (init == 0)
             try {
                 wait();
@@ -15,8 +15,8 @@ class Semaphore {
         init = 0;
     }
 
-    synchronized void notifica() {
+    synchronized void take() {
         init = 1;
-        notify();
+        this.notify();
     }
 }

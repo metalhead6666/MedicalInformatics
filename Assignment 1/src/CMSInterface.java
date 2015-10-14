@@ -20,6 +20,14 @@ public class CMSInterface{
     private static byte[] LENGTH;
 
     private static byte[] readArray;
+    private static Semaphore semaphore;
+
+    public CMSInterface(){
+        semaphore = new Semaphore(0);
+
+        ReadStuff readStuff = new ReadStuff(semaphore);
+        WriteStuff writeStuff = new WriteStuff(semaphore);
+    }
 
     public static boolean connect(ComInterface comInterface, appInterface app){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
@@ -55,7 +63,6 @@ public class CMSInterface{
         finalByteArray = outputStream.toByteArray();
         comInterface.writeBytes(finalByteArray);
 
-
         //FIXME
         try{
             Thread.sleep(2000);
@@ -66,35 +73,18 @@ public class CMSInterface{
         readArray = comInterface.readBytes();
         System.out.println(readArray.length);
 
-        //FIXME PLEASEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEEE
-        byte[] TRANS_HD = {
-                readArray[2], readArray[1],
-                readArray[4], readArray[3],
-                readArray[6], readArray[5],
-        };
-
-        byte[] CONNECT_RSP = {
-                readArray[8], readArray[7],
-        };
-
-        byte[] WINDOW_SIZE = {
-                readArray[10], readArray[9],
-        };
-
-        byte[] COMPAT = {
-                readArray[12], readArray[11],
-        };
-
-        byte[] ERRETURN = {
-                readArray[14], readArray[13],
-        };
-
-        app.appendText("sadasdasdasdad");
+        ArrayList<Byte> response = processResponse(readArray);
+        String string = "";
+        for (int i = 0; i < response.size(); i += 2) {
+            string += "<"+response.get(i)+"|"+response.get(i+1)+">";
+        }
+        app.appendText(string);
 
         return true; //CONNECTED
     }
 
     public static boolean disconnect(ComInterface comInterface, appInterface app){
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         byte[] finalByteArray;
         byte[] DISCONNECT_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.DISCONNECT_REQ).array();
@@ -121,23 +111,14 @@ public class CMSInterface{
         finalByteArray = outputStream.toByteArray();
         comInterface.writeBytes(finalByteArray);
 
-        //FIXME
-        byte[] TRANS_HD = {
-                readArray[2], readArray[1],
-                readArray[4], readArray[3],
-                readArray[6], readArray[5],
-        };
+        readArray = comInterface.readBytes();
 
-        byte[] DISCONNECT_RSP = {
-                readArray[8], readArray[7],
-        };
-
-        byte[] RESPONSE = {
-                readArray[10], readArray[9],
-        };
-
-        //TODO
-        // PRINT TO THE TEXT AREA
+        ArrayList<Byte> response = processResponse(readArray);
+        String string = "";
+        for (int i = 0; i < response.size(); i += 2) {
+            string += "<"+response.get(i)+"|"+response.get(i+1)+">";
+        }
+        app.appendText(string);
 
         return false; //DISCONNECTED
     }
@@ -182,22 +163,82 @@ public class CMSInterface{
         return byteArray;
     }
 
-    //FIXME
-    private static byte[] func_27_27255(byte... byteArray){
-        byte[] temp = new byte[3];
-        temp[0] = byteArray[0];
-        temp[1] =  (byte) 255;
-        temp[2] = byteArray[1];
+    private static ArrayList<Byte> processResponse(byte[] response){
+        ArrayList<Byte> arrayList = new ArrayList<>();
 
-        return temp;
+        if(response[0] != 0x1b){
+            return null;
+        }
+        else{
+            for (int i = 1; i < response.length; i += 2) {
+                if(response[i] == 0x1b) {
+                    if(response[i+1] == 0xff) {
+                        arrayList.add(response[i + 2]);
+                        i++;
+                    }
+                    else{
+                        return null;
+                    }
+                }
+                else{
+                    arrayList.add(response[i+1]);
+                }
+
+                arrayList.add(response[i]);
+            }
+        }
+        return arrayList;
+    }
+}
+
+class WriteStuff extends Thread {
+    private Semaphore semaphore;
+    private int id;
+
+    public WriteStuff(Semaphore semaphore) {
+        this.semaphore = semaphore;
+        this.start();
     }
 
-    //FIXME
-    private static byte[] func_27255_27(byte... byteArray){
-        byte[] temp = new byte[2];
-        temp[0] = byteArray[0];
-        temp[1] = byteArray[2];
+    @Override
+    public void run() {
+        while (true){
+            switch (id){
+                case 0:
+                    
+                    break;
+                default:
+                    break;
+            }
+            semaphore.take();
+        }
+    }
 
-        return temp;
+    public void setId(int id) {
+        this.id = id;
+    }
+}
+
+class ReadStuff extends Thread {
+    private Semaphore semaphore;
+    private int id;
+
+    public ReadStuff(Semaphore semaphore) {
+        this.semaphore = semaphore;
+        this.start();
+    }
+
+    @Override
+    public void run() {
+        while (true){
+            semaphore.release();
+            switch (id){
+
+            }
+        }
+    }
+
+    public void setId(int id) {
+        this.id = id;
     }
 }
