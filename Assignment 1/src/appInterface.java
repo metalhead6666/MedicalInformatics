@@ -216,7 +216,7 @@ public class appInterface extends javax.swing.JFrame {
 
 
 	void getParButton_actionPerformed(java.awt.event.ActionEvent event) {
-		CMSInterface.getParList();
+		CMSInterface.getParList(this.port, this);
 		singleTuneButton.setEnabled(false);
 		idTextField.setEnabled(false);
 	}

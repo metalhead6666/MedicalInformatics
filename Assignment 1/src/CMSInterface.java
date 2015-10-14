@@ -142,12 +142,36 @@ public class CMSInterface{
         return false; //DISCONNECTED
     }
 
-    public static void getParList(){
+    public static void getParList(ComInterface comInterface, appInterface app){
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        byte[] finalByteArray;
+        byte[] PAR_LIST_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.PAR_LIST_REQ).array();
 
+        PAR_LIST_REQ = changeBytesPosition(PAR_LIST_REQ);
+        DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short)Utils.DST_ID).array();
+        DST_ID = changeBytesPosition(DST_ID);
+        SRC_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short)Utils.SRC_ID).array();
+        SRC_ID = changeBytesPosition(SRC_ID);
+
+        LENGTH = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short)(DEFAULT_LENGTH + DEFAULT_SIZE * 2)).array();
+        LENGTH = changeBytesPosition(LENGTH);
+
+        outputStream.write(START_MESSAGE);
+
+        try{
+            outputStream.write(LENGTH);
+            outputStream.write(DST_ID);
+            outputStream.write(SRC_ID);
+            outputStream.write(PAR_LIST_REQ);
+        }catch(IOException e){
+            return;
+        }
+
+        finalByteArray = outputStream.toByteArray();
+        comInterface.writeBytes(finalByteArray);
     }
 
     public static void singleTuneRequest(int id){
-
     }
 
     private static byte[] changeBytesPosition(byte... byteArray){
