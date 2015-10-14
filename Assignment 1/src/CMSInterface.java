@@ -19,24 +19,31 @@ public class CMSInterface{
     private static byte[] SRC_ID;
     private static byte[] LENGTH;
 
-    private static byte[] readArray;
     private static Semaphore semaphore;
+    private static ComInterface _comInterface;
+    private static appInterface _appInterface;
 
     public CMSInterface(){
         semaphore = new Semaphore(0);
-
-        ReadStuff readStuff = new ReadStuff(semaphore);
-        WriteStuff writeStuff = new WriteStuff(semaphore);
+        new ReadStuff(semaphore);
     }
 
-    public static boolean connect(ComInterface comInterface, appInterface app){
+    private static byte[] changeBytesPosition(byte... byteArray){
+        byte temp = byteArray[1];
+        byteArray[1] = byteArray[0];
+        byteArray[0] = temp;
+
+        return byteArray;
+    }
+
+    public static boolean sendMessageCD(ComInterface comInterface, appInterface app, boolean type){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         byte[] finalByteArray;
         byte[] CONNECT_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.CONNECT_REQ).array();
         byte[] TICK_PERIOD = new byte[DEFAULT_SIZE];
-        //DST_ID = new byte[DEFAULT_SIZE];
-        //SRC_ID = new byte[DEFAULT_SIZE];
-        //LENGTH = new byte[DEFAULT_SIZE];
+
+        _comInterface = comInterface;
+        _appInterface = app;
 
         CONNECT_REQ = changeBytesPosition(CONNECT_REQ);
         DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short)Utils.DST_ID).array();
@@ -55,39 +62,32 @@ public class CMSInterface{
             outputStream.write(SRC_ID);
             outputStream.write(CONNECT_REQ);
 
-            outputStream.write(TICK_PERIOD);
+            if(type){
+                outputStream.write(TICK_PERIOD);
+            }
         }catch(IOException e){
-            return false;
+            return !type;
         }
 
         finalByteArray = outputStream.toByteArray();
         comInterface.writeBytes(finalByteArray);
 
-        //FIXME
-        try{
-            Thread.sleep(2000);
-        }catch (InterruptedException e){
-            return false;
-        }
+        semaphore.take();
 
-        readArray = comInterface.readBytes();
-        System.out.println(readArray.length);
+        return type;
+    }
 
-        ArrayList<Byte> response = processResponse(readArray);
-        String string = "";
-        for (int i = 0; i < response.size(); i += 2) {
-            string += "<"+response.get(i)+"|"+response.get(i+1)+">";
-        }
-        app.appendText(string);
-
-        return true; //CONNECTED
+    public static boolean connect(ComInterface comInterface, appInterface app){
+        return sendMessageCD(comInterface, app, true);
     }
 
     public static boolean disconnect(ComInterface comInterface, appInterface app){
-
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         byte[] finalByteArray;
         byte[] DISCONNECT_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.DISCONNECT_REQ).array();
+
+        _comInterface = comInterface;
+        _appInterface = app;
 
         DISCONNECT_REQ = changeBytesPosition(DISCONNECT_REQ);
         DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short)Utils.DST_ID).array();
@@ -111,14 +111,7 @@ public class CMSInterface{
         finalByteArray = outputStream.toByteArray();
         comInterface.writeBytes(finalByteArray);
 
-        readArray = comInterface.readBytes();
-
-        ArrayList<Byte> response = processResponse(readArray);
-        String string = "";
-        for (int i = 0; i < response.size(); i += 2) {
-            string += "<"+response.get(i)+"|"+response.get(i+1)+">";
-        }
-        app.appendText(string);
+        semaphore.take();
 
         return false; //DISCONNECTED
     }
@@ -152,93 +145,78 @@ public class CMSInterface{
         comInterface.writeBytes(finalByteArray);
     }
 
-    public static void singleTuneRequest(int id){
-    }
+    /*public static void singleTuneRequest(int id){
 
-    private static byte[] changeBytesPosition(byte... byteArray){
-        byte temp = byteArray[1];
-        byteArray[1] = byteArray[0];
-        byteArray[0] = temp;
+    }*/
 
-        return byteArray;
-    }
+    class ReadStuff extends Thread{
+        private Semaphore semaphore;
 
-    private static ArrayList<Byte> processResponse(byte[] response){
-        ArrayList<Byte> arrayList = new ArrayList<>();
-
-        if(response[0] != 0x1b){
-            return null;
+        public ReadStuff(Semaphore semaphore){
+            this.semaphore = semaphore;
+            this.start();
         }
-        else{
-            for (int i = 1; i < response.length; i += 2) {
-                if(response[i] == 0x1b) {
-                    if(response[i+1] == 0xff) {
-                        arrayList.add(response[i + 2]);
-                        i++;
-                    }
-                    else{
-                        return null;
-                    }
+
+        @Override
+        public synchronized void run(){
+            byte[] readArray;
+            String string;
+            ArrayList<Byte> response;
+
+            while(true){
+                semaphore.release();
+
+                string = "";
+
+                readArray = _comInterface.readBytes();
+                System.out.println(readArray.length);
+
+                response = processResponse(readArray);
+
+                if(response == null){
+                    _appInterface.appendText("Some error happened while reading, do something about it!");
                 }
+
                 else{
-                    arrayList.add(response[i+1]);
+                    for(int i = 0; i < response.size(); i += 2){
+                        string += "<" + response.get(i) + "|" + response.get(i + 1) + ">";
+                    }
+
+                    _appInterface.appendText(string);
+                    response.clear();
                 }
-
-                arrayList.add(response[i]);
             }
         }
-        return arrayList;
-    }
-}
 
-class WriteStuff extends Thread {
-    private Semaphore semaphore;
-    private int id;
+        private ArrayList<Byte> processResponse(byte[] response){
+            ArrayList<Byte> arrayList = new ArrayList<>();
 
-    public WriteStuff(Semaphore semaphore) {
-        this.semaphore = semaphore;
-        this.start();
-    }
-
-    @Override
-    public void run() {
-        while (true){
-            switch (id){
-                case 0:
-                    
-                    break;
-                default:
-                    break;
+            if(response[0] != 0x1b){
+                return null;
             }
-            semaphore.take();
-        }
-    }
 
-    public void setId(int id) {
-        this.id = id;
-    }
-}
+            else{
+                for(int i = 1; i < response.length; i += 2){
+                    if(response[i] == 0x1b){
+                        if(response[i + 1] == 0xff){
+                            arrayList.add(response[i + 2]);
+                            ++i;
+                        }
 
-class ReadStuff extends Thread {
-    private Semaphore semaphore;
-    private int id;
+                        else{
+                            return null;
+                        }
+                    }
 
-    public ReadStuff(Semaphore semaphore) {
-        this.semaphore = semaphore;
-        this.start();
-    }
+                    else{
+                        arrayList.add(response[i + 1]);
+                    }
 
-    @Override
-    public void run() {
-        while (true){
-            semaphore.release();
-            switch (id){
-
+                    arrayList.add(response[i]);
+                }
             }
-        }
-    }
 
-    public void setId(int id) {
-        this.id = id;
+            return arrayList;
+        }
     }
 }
