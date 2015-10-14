@@ -120,7 +120,7 @@ public class appInterface extends javax.swing.JFrame {
 					JOptionPane.QUESTION_MESSAGE);
 			if (reply == JOptionPane.YES_OPTION) {
 				if (connected)
-					CMSInterface.disconnect(this.port);
+					CMSInterface.disconnect(this.port, this);
 
 				this.setVisible(false);
 				this.dispose();
@@ -181,7 +181,7 @@ public class appInterface extends javax.swing.JFrame {
 
 	void closeButton_actionPerformed(java.awt.event.ActionEvent event) {
 		if (connected)
-			CMSInterface.disconnect(this.port);
+			CMSInterface.disconnect(this.port, this);
 		try {
 			Thread.sleep(300);
 		} catch (Exception e) {
@@ -201,7 +201,7 @@ public class appInterface extends javax.swing.JFrame {
 		disconnButton.setEnabled(true);
 		getParButton.setEnabled(true);
 		invertCheckBox.setEnabled(true);
-		connected = CMSInterface.connect(this.port);
+		connected = CMSInterface.connect(this.port, this);
 	}
 
 	void disconnButton_actionPerformed(java.awt.event.ActionEvent event) {
@@ -211,7 +211,7 @@ public class appInterface extends javax.swing.JFrame {
 		singleTuneButton.setEnabled(false);
 		invertCheckBox.setEnabled(false);
 		idTextField.setEnabled(false);
-		connected = CMSInterface.disconnect(this.port);
+		connected = CMSInterface.disconnect(this.port, this);
 	}
 
 

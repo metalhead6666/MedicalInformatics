@@ -21,7 +21,7 @@ public class CMSInterface{
 
     private static byte[] readArray;
 
-    public static boolean connect(ComInterface comInterface){
+    public static boolean connect(ComInterface comInterface, appInterface app){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         byte[] finalByteArray;
         byte[] CONNECT_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.CONNECT_REQ).array();
@@ -89,13 +89,12 @@ public class CMSInterface{
                 readArray[14], readArray[13],
         };
 
-        //TODO
-        // PRINT TO THE TEXT AREA
+        app.appendText("sadasdasdasdad");
 
         return true; //CONNECTED
     }
 
-    public static boolean disconnect(ComInterface comInterface){
+    public static boolean disconnect(ComInterface comInterface, appInterface app){
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         byte[] finalByteArray;
         byte[] DISCONNECT_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.DISCONNECT_REQ).array();
