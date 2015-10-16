@@ -220,9 +220,13 @@ public class CMSInterface {
                         if (response[i + 1] == 0xff) {
                             arrayList.add(response[i + 2]);
                             ++i;
-                        } else {
-                            return null;
                         }
+
+                        //TODO
+                        // this part might be wrong for the ParList
+                        /*else {
+                            return null;
+                        }*/
                     } else {
                         try {
                             arrayList.add(response[i + 1]);
@@ -236,6 +240,27 @@ public class CMSInterface {
             }
 
             return arrayList;
+        }
+
+        private String processParList(ArrayList<Byte> responseParList){
+            String finalResponseProcessed = "";
+
+            //TODO
+            //i think this works well, but we need to test it
+            for (int i = 1; i < responseParList.size(); ++i) {
+
+                //responseParList.get(i) is ALWAYS the size
+                //here we are processing ONLY one message at the time;
+                int j;
+                for(j = i ; j < i + responseParList.get(i); j += 2){
+                    finalResponseProcessed += "<" + responseParList.get(i) + "|" + responseParList.get(i + 1) + ">";
+                }
+
+                //jumping the 0x1b of the next message
+                i = j + 1;
+            }
+
+            return finalResponseProcessed;
         }
     }
 }
