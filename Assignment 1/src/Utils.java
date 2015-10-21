@@ -35,6 +35,7 @@ public class Utils {
     static int DISCONNECT_RES = 8;
 
 	static int PAR_LIST_REQ = 11;
+	static int TUNE_REQ = 13;
 
 	/**
 	 * Lists all available communication ports (COM and LPT) on this machine

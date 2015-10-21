@@ -226,7 +226,7 @@ public class appInterface extends javax.swing.JFrame {
 
 
     void singleTuneButton_actionPerformed(java.awt.event.ActionEvent event) {
-
+        cmsInterface.singleTuneRequest(this.port, this, idTextField.getText());
     }
 
     void appendText(String text) {

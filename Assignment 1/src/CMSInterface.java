@@ -153,9 +153,53 @@ public class CMSInterface {
         semaphore.take();
     }
 
-    /*public static void singleTuneRequest(int id){
+    public void singleTuneRequest(ComInterface comInterface, appInterface appInterface, String text) {
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+        int id = Integer.parseInt(text);
 
-    }*/
+        byte[] TUNE_ID;
+        byte[] finalByteArray;
+        byte[] TUNE_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.TUNE_REQ).array();
+        TUNE_REQ = changeBytesPosition(TUNE_REQ);
+
+        DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.DST_ID).array();
+        DST_ID = changeBytesPosition(DST_ID);
+        SRC_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.SRC_ID).array();
+        SRC_ID = changeBytesPosition(SRC_ID);
+
+        //FIXME
+        //the lenght might not be this one, I just
+        //copy and paste some code
+        //I guess it's missing the TUNE_ID size here?
+        LENGTH = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) (DEFAULT_LENGTH + DEFAULT_SIZE)).array();
+        LENGTH = changeBytesPosition(LENGTH);
+
+        TUNE_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) id).array();
+        TUNE_ID = changeBytesPosition(TUNE_ID);
+
+        // TODO
+        // I think there is something missing here
+
+
+        outputStream.write(START_MESSAGE);
+
+        try {
+            outputStream.write(LENGTH);
+            outputStream.write(DST_ID);
+            outputStream.write(SRC_ID);
+
+            outputStream.write(TUNE_REQ);
+            outputStream.write(TUNE_ID);
+        } catch (IOException e) {
+            return;
+        }
+
+        finalByteArray = outputStream.toByteArray();
+
+        comInterface.writeBytes(finalByteArray);
+
+        semaphore.take();
+    }
 
     class ReadStuff extends Thread {
         private Semaphore semaphore;
@@ -185,10 +229,9 @@ public class CMSInterface {
                 readArray = _comInterface.readBytes();
                 System.out.println(readArray.length);
 
-                if(readArray.length != 0){
+                if (readArray.length != 0) {
                     response = processResponse(readArray);
-                }
-                else{
+                } else {
                     response = null;
                 }
 
@@ -208,7 +251,7 @@ public class CMSInterface {
         private ArrayList<Byte> processResponse(byte[] response) {
             ArrayList<Byte> arrayList = new ArrayList<>();
 
-            if(response == null){
+            if (response == null) {
                 return null;
             }
 
@@ -230,7 +273,7 @@ public class CMSInterface {
                     } else {
                         try {
                             arrayList.add(response[i + 1]);
-                        } catch (ArrayIndexOutOfBoundsException e){
+                        } catch (ArrayIndexOutOfBoundsException e) {
                             System.out.println("UPS  - Line: 230 + ArrayIndexOutOfBoundsException");
                         }
                     }
@@ -242,7 +285,7 @@ public class CMSInterface {
             return arrayList;
         }
 
-        private String processParList(ArrayList<Byte> responseParList){
+        private String processParList(ArrayList<Byte> responseParList) {
             String finalResponseProcessed = "";
 
             //TODO
@@ -252,12 +295,29 @@ public class CMSInterface {
                 //responseParList.get(i) is ALWAYS the size
                 //here we are processing ONLY one message at the time;
                 int j;
-                for(j = i ; j < i + responseParList.get(i); j += 2){
-                    finalResponseProcessed += "<" + responseParList.get(i) + "|" + responseParList.get(i + 1) + ">";
+                for (j = i; j < i + responseParList.get(i); j += 2) {
+                    finalResponseProcessed += "<" + responseParList.get(j) + "|" + responseParList.get(j + 1) + ">";
                 }
 
                 //jumping the 0x1b of the next message
                 i = j + 1;
+            }
+
+            return finalResponseProcessed;
+        }
+
+        /* Similar to processParList */
+        private String processTuneRes(ArrayList<Byte> responseTuneReq) {
+            String finalResponseProcessed = "";
+
+            //get the size of the TUNE_RES
+            int sizeOfMessage = responseTuneReq.get(1);
+
+            //TODO:
+            //read the documentation to check if this is right
+            //process the response according to the size of it
+            for (int i = 2; i < sizeOfMessage; i += 2) {
+                finalResponseProcessed += "<" + responseTuneReq.get(i) + "|" + responseTuneReq.get(i + 1) + ">";
             }
 
             return finalResponseProcessed;
