@@ -16,19 +16,17 @@ public class CMSInterface {
     private static byte START_MESSAGE = 0x1b;
     private final static int DEFAULT_LENGTH = 6; /* LENGTH + SRC_ID + DST_ID */
     private final static int DEFAULT_SIZE = 2;
-    private static byte[] DST_ID;
-    private static byte[] SRC_ID;
-    private static byte[] LENGTH;
 
     private static Semaphore semaphore;
     private static ComInterface _comInterface;
-    private static appInterface _appInterface;
+    private static appInterface _app;
 
     public CMSInterface() {
         semaphore = new Semaphore(0);
         new ReadStuff(semaphore);
     }
 
+    /* changes the byte position to send */
     private static byte[] changeBytesPosition(byte... byteArray) {
         byte temp = byteArray[1];
         byteArray[1] = byteArray[0];
@@ -37,124 +35,104 @@ public class CMSInterface {
         return byteArray;
     }
 
-    public static boolean sendMessageCD(ComInterface comInterface, appInterface app, boolean type) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        byte[] finalByteArray;
-        byte[] CONNECT_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.CONNECT_REQ).array();
-        byte[] TICK_PERIOD = new byte[DEFAULT_SIZE];
-
+    /* sets the variables received when a command is called on the interface */
+    public static void setVar(ComInterface comInterface, appInterface app){
         _comInterface = comInterface;
-        _appInterface = app;
+        _app = app;
+    }
 
-        CONNECT_REQ = changeBytesPosition(CONNECT_REQ);
-        DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.DST_ID).array();
-        DST_ID = changeBytesPosition(DST_ID);
-        SRC_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.SRC_ID).array();
-        SRC_ID = changeBytesPosition(SRC_ID);
+    /* creates and joins in an array the parts of the message */
+    public static byte[] createArrayByteToSend(int size_array, short request){
+        byte[] finalByteArray = new byte[size_array];
+        byte[] length, dstId, srcId, req;
+        int i = 0;
 
-        LENGTH = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) (DEFAULT_LENGTH + DEFAULT_SIZE * 2)).array();
-        LENGTH = changeBytesPosition(LENGTH);
+        length = createMiniByteArray((short)size_array);
+        dstId = createMiniByteArray((short)Utils.DST_ID);
+        srcId = createMiniByteArray((short)Utils.SRC_ID);
+        req = createMiniByteArray(request);
+
+        finalByteArray = addToArray(length, i, finalByteArray);
+        i += 2;
+        finalByteArray = addToArray(dstId, i, finalByteArray);
+        i += 2;
+        finalByteArray = addToArray(srcId, i, finalByteArray);
+        i += 2;
+        finalByteArray = addToArray(req, i, finalByteArray);
+
+        return finalByteArray;
+    }
+
+    /* inserts into a segment the bytes needed */
+    public static byte[] createMiniByteArray(short put){
+        byte[] miniByte;
+
+        miniByte = ByteBuffer.allocate(DEFAULT_SIZE).putShort(put).array();
+        miniByte = changeBytesPosition(miniByte);
+
+        return miniByte;
+    }
+
+    /* method to add a segment into the final array */
+    public static byte[] addToArray(byte[] add, int pos, byte... array){
+        array[pos] = add[0];
+        array[pos + 1] = add[1];
+
+        return array;
+    }
+
+    /* after the array to send is created, this method sends it to com */
+    public static boolean sendMessageToCom(boolean type, byte[] byteArray){
+        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
 
         outputStream.write(START_MESSAGE);
 
-        try {
-            outputStream.write(LENGTH);
-            outputStream.write(DST_ID);
-            outputStream.write(SRC_ID);
-            outputStream.write(CONNECT_REQ);
-
-            if (type) {
-                outputStream.write(TICK_PERIOD);
-            }
-        } catch (IOException e) {
+        try{
+            outputStream.write(byteArray);
+        }catch(IOException e){
             return !type;
         }
 
-        finalByteArray = outputStream.toByteArray();
-        comInterface.writeBytes(finalByteArray);
-
+        _comInterface.writeBytes(outputStream.toByteArray());
         semaphore.take();
 
         return type;
     }
 
-    public static boolean connect(ComInterface comInterface, appInterface app) {
-        return sendMessageCD(comInterface, app, true);
+    /* method to connect, called by the interface */
+    public static boolean connect(ComInterface comInterface, appInterface app){
+        byte[] finalArray;
+
+        setVar(comInterface, app);
+        finalArray = createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE * 2, (short)Utils.CONNECT_REQ);
+        finalArray[10] = finalArray[11] = 0;
+        return sendMessageToCom(true, finalArray);
     }
 
+    /* method to disconnect, called by the interface */
     public static boolean disconnect(ComInterface comInterface, appInterface app) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        byte[] finalByteArray;
-        byte[] DISCONNECT_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.DISCONNECT_REQ).array();
-
-        _comInterface = comInterface;
-        _appInterface = app;
-
-        DISCONNECT_REQ = changeBytesPosition(DISCONNECT_REQ);
-        DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.DST_ID).array();
-        DST_ID = changeBytesPosition(DST_ID);
-        SRC_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.SRC_ID).array();
-        SRC_ID = changeBytesPosition(SRC_ID);
-        LENGTH = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) (DEFAULT_LENGTH + DEFAULT_SIZE * 2)).array();
-        LENGTH = changeBytesPosition(LENGTH);
-
-        outputStream.write(START_MESSAGE);
-
-        try {
-            outputStream.write(LENGTH);
-            outputStream.write(DST_ID);
-            outputStream.write(SRC_ID);
-            outputStream.write(DISCONNECT_REQ);
-        } catch (IOException e) {
-            return true;
-        }
-
-        finalByteArray = outputStream.toByteArray();
-        comInterface.writeBytes(finalByteArray);
-
-        semaphore.take();
-
-        return false; //DISCONNECTED
+        setVar(comInterface, app);
+        return sendMessageToCom(false, createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE, (short)Utils.DISCONNECT_REQ));
     }
 
-    public static void getParList(ComInterface comInterface, appInterface app) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        byte[] finalByteArray;
-        byte[] PAR_LIST_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.PAR_LIST_REQ).array();
-
-        _comInterface = comInterface;
-        _appInterface = app;
-
-        PAR_LIST_REQ = changeBytesPosition(PAR_LIST_REQ);
-        DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.DST_ID).array();
-        DST_ID = changeBytesPosition(DST_ID);
-        SRC_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.SRC_ID).array();
-        SRC_ID = changeBytesPosition(SRC_ID);
-
-        LENGTH = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) (DEFAULT_LENGTH + DEFAULT_SIZE)).array();
-        LENGTH = changeBytesPosition(LENGTH);
-
-        outputStream.write(START_MESSAGE);
-
-        try {
-            outputStream.write(LENGTH);
-            outputStream.write(DST_ID);
-            outputStream.write(SRC_ID);
-
-            outputStream.write(PAR_LIST_REQ);
-        } catch (IOException e) {
-            return;
-        }
-
-        finalByteArray = outputStream.toByteArray();
-
-        comInterface.writeBytes(finalByteArray);
-
-        semaphore.take();
+    /* method to get the par list, called by the interface */
+    public static void getParList(ComInterface comInterface, appInterface app){
+        setVar(comInterface, app);
+        sendMessageToCom(false, createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE, (short)Utils.PAR_LIST_REQ));
     }
 
-    public void singleTuneRequest(ComInterface comInterface, appInterface appInterface, String text) {
-        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+    /* method to get the single tune request, called by the interface */
+    public void singleTuneRequest(ComInterface comInterface, appInterface app, String text){
+        byte[] finalArray, idByte;
+        int id = Integer.parseInt(text);
+
+        setVar(comInterface, app);
+        finalArray = createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE * 2, (short)Utils.TUNE_REQ);
+        idByte = createMiniByteArray((short)id);
+        finalArray = addToArray(idByte, 8, finalArray);
+        sendMessageToCom(false, finalArray);
+
+        /*ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         int id = Integer.parseInt(text);
 
         byte[] TUNE_ID;
@@ -180,6 +158,7 @@ public class CMSInterface {
         // TODO
         // I think there is something missing here
 
+
         outputStream.write(START_MESSAGE);
 
         try {
@@ -197,9 +176,10 @@ public class CMSInterface {
 
         comInterface.writeBytes(finalByteArray);
 
-        semaphore.take();
+        semaphore.take();*/
     }
 
+    /* class with a thread to read  */
     class ReadStuff extends Thread {
         private Semaphore semaphore;
 
