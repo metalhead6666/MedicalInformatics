@@ -180,7 +180,6 @@ public class CMSInterface {
         // TODO
         // I think there is something missing here
 
-
         outputStream.write(START_MESSAGE);
 
         try {
@@ -238,12 +237,20 @@ public class CMSInterface {
                 if (response == null) {
                     semaphore.take();
                 } else {
-                    for (int i = 0; i < response.size(); i += 2) {
-                        string += "<" + response.get(i) + "|" + response.get(i + 1) + ">";
+                    if(response.get(7) == 12 || response.get(8) == 12){
+                        string = processParList(response) + "\n";
+
+                        _appInterface.appendText(string);
+                        response.clear();
                     }
-                    string += "\n";
-                    _appInterface.appendText(string);
-                    response.clear();
+                    else {
+                        for (int i = 0; i < response.size(); i += 2) {
+                            string += "<" + response.get(i) + "|" + response.get(i + 1) + ">";
+                        }
+                        string += "\n";
+                        _appInterface.appendText(string);
+                        response.clear();
+                    }
                 }
             }
         }
