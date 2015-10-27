@@ -100,23 +100,23 @@ public class CMSInterface {
     }
 
     /* method to connect, called by the interface */
-    public static boolean connect(ComInterface comInterface, appInterface app){
+    public boolean connect(ComInterface comInterface, appInterface app){
         byte[] finalArray;
 
         setVar(comInterface, app);
         finalArray = createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE * 2, (short)Utils.CONNECT_REQ);
-        finalArray[10] = finalArray[11] = 0;
+        finalArray[8] = finalArray[9] = 0;
         return sendMessageToCom(true, finalArray);
     }
 
     /* method to disconnect, called by the interface */
-    public static boolean disconnect(ComInterface comInterface, appInterface app) {
+    public boolean disconnect(ComInterface comInterface, appInterface app) {
         setVar(comInterface, app);
         return sendMessageToCom(false, createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE, (short)Utils.DISCONNECT_REQ));
     }
 
     /* method to get the par list, called by the interface */
-    public static void getParList(ComInterface comInterface, appInterface app){
+    public void getParList(ComInterface comInterface, appInterface app){
         setVar(comInterface, app);
         sendMessageToCom(false, createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE, (short)Utils.PAR_LIST_REQ));
     }
@@ -200,7 +200,7 @@ public class CMSInterface {
                 string = "";
 
                 try {
-                    Thread.sleep(10);
+                    Thread.sleep(100);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
@@ -216,21 +216,20 @@ public class CMSInterface {
 
                 if (response == null) {
                     semaphore.take();
-                } else {
-                    if(response.get(7) == 12 || response.get(8) == 12){
-                        string = processParList(response) + "\n";
-
-                        _app.appendText(string);
-                        response.clear();
+                } else {                           	
+                    for (int i = 0; i < response.size(); i += 2) {
+                    	if(i == response.size() - 1){
+                    		string += "<" + response.get(i) + ">";
+                    		break;
+                    	}
+                    	else{
+                    		string += "<" + response.get(i) + "|" + response.get(i + 1) + ">";
+                    	}                        
                     }
-                    else {
-                        for (int i = 0; i < response.size(); i += 2) {
-                            string += "<" + response.get(i) + "|" + response.get(i + 1) + ">";
-                        }
-                        string += "\n";
-                        _app.appendText(string);
-                        response.clear();
-                    }
+                    string += "\n";
+                    _app.appendText(string);
+                    response.clear();
+                    semaphore.take();
                 }
             }
         }
