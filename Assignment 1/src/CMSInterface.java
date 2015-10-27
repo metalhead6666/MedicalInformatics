@@ -220,7 +220,7 @@ public class CMSInterface {
                     if(response.get(7) == 12 || response.get(8) == 12){
                         string = processParList(response) + "\n";
 
-                        _appInterface.appendText(string);
+                        _app.appendText(string);
                         response.clear();
                     }
                     else {
@@ -228,7 +228,7 @@ public class CMSInterface {
                             string += "<" + response.get(i) + "|" + response.get(i + 1) + ">";
                         }
                         string += "\n";
-                        _appInterface.appendText(string);
+                        _app.appendText(string);
                         response.clear();
                     }
                 }
