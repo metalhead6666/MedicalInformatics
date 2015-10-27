@@ -78,11 +78,11 @@ public class appInterface extends javax.swing.JFrame {
         idLabel.setText("Single Tune Id:");
         idLabel.setBounds(684, 156, 113, 29);
         getContentPane().add(idLabel);
-        idTextField.setEnabled(false);
+        idTextField.setEnabled(true);
         getContentPane().add(idTextField);
         idTextField.setBounds(768, 156, 28, 29);
         singleTuneButton.setText("Single Tune");
-        singleTuneButton.setEnabled(false);
+        singleTuneButton.setEnabled(true);
         getContentPane().add(singleTuneButton);
         singleTuneButton.setBounds(684, 192, 113, 29);
         getContentPane().add(invertCheckBox);
@@ -226,11 +226,16 @@ public class appInterface extends javax.swing.JFrame {
 
 
     void singleTuneButton_actionPerformed(java.awt.event.ActionEvent event) {
-        cmsInterface.singleTuneRequest(this.port, this, idTextField.getText());
+        if(idTextField.getText().equals("")){
+        	System.out.println("Insert an ID first!");
+        }
+        
+        else{
+        	cmsInterface.singleTuneRequest(this.port, this, idTextField.getText());
+        }
     }
 
     void appendText(String text) {
         textArea.append(text);
     }
-
 }
