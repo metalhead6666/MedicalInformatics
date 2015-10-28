@@ -1,7 +1,6 @@
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.ArrayList;
 
 /**
  * Simple program to open communications ports and connect to Agilent Monitor
@@ -20,14 +19,21 @@ public class CMSInterface {
     private static Semaphore semaphore;
     private static ComInterface _comInterface;
     private static appInterface _app;
+    
+    private static boolean isParList = false;
+    private static int actualParListMessageLength = 0;
+    private static int totalParListMessageLength = 0;
+    private static short totalNumberParListMessages = 0;
+    private static int actualNumberParListMessage = 0;
+    private static String processedParListMessage = "";
 
-    public CMSInterface() {
+    public CMSInterface(){
         semaphore = new Semaphore(0);
         new ReadStuff(semaphore);
     }
 
     /* changes the byte position to send */
-    private static byte[] changeBytesPosition(byte... byteArray) {
+    private static byte[] changeBytesPosition(byte... byteArray){
         byte temp = byteArray[1];
         byteArray[1] = byteArray[0];
         byteArray[0] = temp;
@@ -103,20 +109,25 @@ public class CMSInterface {
     public boolean connect(ComInterface comInterface, appInterface app){
         byte[] finalArray;
 
+        isParList = false;
         setVar(comInterface, app);
         finalArray = createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE * 2, (short)Utils.CONNECT_REQ);
         finalArray[8] = finalArray[9] = 0;
+        
         return sendMessageToCom(true, finalArray);
     }
 
     /* method to disconnect, called by the interface */
-    public boolean disconnect(ComInterface comInterface, appInterface app) {
+    public boolean disconnect(ComInterface comInterface, appInterface app){
+    	isParList = false;
         setVar(comInterface, app);
+        
         return sendMessageToCom(false, createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE, (short)Utils.DISCONNECT_REQ));
     }
 
     /* method to get the par list, called by the interface */
     public void getParList(ComInterface comInterface, appInterface app){
+    	isParList = true;
         setVar(comInterface, app);
         sendMessageToCom(false, createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE, (short)Utils.PAR_LIST_REQ));
     }
@@ -126,187 +137,103 @@ public class CMSInterface {
         byte[] finalArray, idByte;
         int id = Integer.parseInt(text);
 
+        isParList = false;
         setVar(comInterface, app);
         finalArray = createArrayByteToSend(DEFAULT_LENGTH + DEFAULT_SIZE * 2, (short)Utils.TUNE_REQ);
         idByte = createMiniByteArray((short)id);
-        finalArray = addToArray(idByte, 8, finalArray);
+        finalArray = addToArray(idByte, DEFAULT_LENGTH + DEFAULT_SIZE, finalArray);
         sendMessageToCom(false, finalArray);
-
-        /*ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-        int id = Integer.parseInt(text);
-
-        byte[] TUNE_ID;
-        byte[] finalByteArray;
-        byte[] TUNE_REQ = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.TUNE_REQ).array();
-        TUNE_REQ = changeBytesPosition(TUNE_REQ);
-
-        DST_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.DST_ID).array();
-        DST_ID = changeBytesPosition(DST_ID);
-        SRC_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) Utils.SRC_ID).array();
-        SRC_ID = changeBytesPosition(SRC_ID);
-
-        //FIXME
-        //the lenght might not be this one, I just
-        //copy and paste some code
-        //I guess it's missing the TUNE_ID size here?
-        LENGTH = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) (DEFAULT_LENGTH + DEFAULT_SIZE)).array();
-        LENGTH = changeBytesPosition(LENGTH);
-
-        TUNE_ID = ByteBuffer.allocate(DEFAULT_SIZE).putShort((short) id).array();
-        TUNE_ID = changeBytesPosition(TUNE_ID);
-
-        // TODO
-        // I think there is something missing here
-
-
-        outputStream.write(START_MESSAGE);
-
-        try {
-            outputStream.write(LENGTH);
-            outputStream.write(DST_ID);
-            outputStream.write(SRC_ID);
-
-            outputStream.write(TUNE_REQ);
-            outputStream.write(TUNE_ID);
-        } catch (IOException e) {
-            return;
-        }
-
-        finalByteArray = outputStream.toByteArray();
-
-        comInterface.writeBytes(finalByteArray);
-
-        semaphore.take();*/
     }
 
     /* class with a thread to read  */
-    class ReadStuff extends Thread {
+    class ReadStuff extends Thread{
         private Semaphore semaphore;
 
-        public ReadStuff(Semaphore semaphore) {
+        public ReadStuff(Semaphore semaphore){
             this.semaphore = semaphore;
             this.start();
         }
 
         @Override
-        public synchronized void run() {
-            byte[] readArray;
-            String string;
-            ArrayList<Byte> response;
+        public synchronized void run(){
+            byte[] readArray, response;
+            String string;       
 
-            while (true) {
+            while(true){
                 semaphore.release();
-
                 string = "";
 
                 try {
                     Thread.sleep(100);
-                } catch (InterruptedException e) {
+                } catch (InterruptedException e){
                     e.printStackTrace();
                 }
 
                 readArray = _comInterface.readBytes();
-                System.out.println(readArray.length);
 
-                if (readArray.length != 0) {
-                    response = processResponse(readArray);
-                } else {
-                    response = null;
-                }
-
-                if (response == null) {
-                    semaphore.take();
-                } else {                           	
-                    for (int i = 0; i < response.size(); i += 2) {
-                    	if(i == response.size() - 1){
-                    		string += "<" + response.get(i) + ">";
-                    		break;
-                    	}
-                    	else{
-                    		string += "<" + response.get(i) + "|" + response.get(i + 1) + ">";
-                    	}                        
+                if(readArray.length != 0){
+                    if(isParList){
+                    	processParListMessage(readArray);
                     }
-                    string += "\n";
-                    _app.appendText(string);
-                    response.clear();
-                    semaphore.take();
+                    
+                    else{
+                    	response = processResponse(readArray);
+                        
+                        for(int i = 0; i < response.length; i += 2){
+                        	string += "<" + response[i] + "|" + response[i + 1] + ">";                     
+                        }
+                        
+                        string += "\n";
+                        _app.appendText(string);
+                    }
                 }
+                
+                semaphore.take();
             }
         }
+        
+        private void processParListMessage(byte... readArray){
+        	byte[] temp;
+        	
+        	if(totalNumberParListMessages == 0){
+        		temp = new byte[2];
+        		temp[0] = readArray[0];
+        		temp[1] = readArray[1];
+        		
+        		totalNumberParListMessages = readArray[9];
+        		actualNumberParListMessage = readArray[8];
+        		totalParListMessageLength = ByteBuffer.wrap(temp).getShort();
+        		actualParListMessageLength = 0;
+        	}
+        	
+        	for(int i = 0; i < readArray.length; i += 2){
+        		
+        	}
+        }
 
-        private ArrayList<Byte> processResponse(byte[] response) {
-            ArrayList<Byte> arrayList = new ArrayList<>();
+        private byte[] processResponse(byte... response){
+            byte[] byteArray = new byte[response.length];
 
-            if (response == null) {
+            if(response == null || response[0] != 0x1b){
                 return null;
             }
-
-            if (response[0] != 0x1b) {
-                return null;
-            } else {
-                for (int i = 1; i < response.length; i += 2) {
-                    if (response[i] == 0x1b) {
-                        if (response[i + 1] == 0xff) {
-                            arrayList.add(response[i + 2]);
-                            ++i;
-                        }
-
-                        //TODO
-                        // this part might be wrong for the ParList
-                        /*else {
-                            return null;
-                        }*/
-                    } else {
-                        try {
-                            arrayList.add(response[i + 1]);
-                        } catch (ArrayIndexOutOfBoundsException e) {
-                            System.out.println("UPS  - Line: 230 + ArrayIndexOutOfBoundsException");
-                        }
+            
+            for(int i = 1, j = 0; i < response.length; i += 2, j += 2){
+                if(response[i] == 0x1b){
+                    if(response[i + 1] == 0xff){
+                        byteArray[j] = response[i + 2];
+                        ++i;
                     }
-
-                    arrayList.add(response[i]);
-                }
-            }
-
-            return arrayList;
-        }
-
-        private String processParList(ArrayList<Byte> responseParList) {
-            String finalResponseProcessed = "";
-
-            //TODO
-            //i think this works well, but we need to test it
-            for (int i = 1; i < responseParList.size(); ++i) {
-
-                //responseParList.get(i) is ALWAYS the size
-                //here we are processing ONLY one message at the time;
-                int j;
-                for (j = i; j < i + responseParList.get(i); j += 2) {
-                    finalResponseProcessed += "<" + responseParList.get(j) + "|" + responseParList.get(j + 1) + ">";
+                } 
+                
+                else{
+                	byteArray[j] = response[i + 1];
                 }
 
-                //jumping the 0x1b of the next message
-                i = j + 1;
+                byteArray[j + 1] = response[i];
             }
 
-            return finalResponseProcessed;
-        }
-
-        /* Similar to processParList */
-        private String processTuneRes(ArrayList<Byte> responseTuneReq) {
-            String finalResponseProcessed = "";
-
-            //get the size of the TUNE_RES
-            int sizeOfMessage = responseTuneReq.get(1);
-
-            //TODO:
-            //read the documentation to check if this is right
-            //process the response according to the size of it
-            for (int i = 2; i < sizeOfMessage; i += 2) {
-                finalResponseProcessed += "<" + responseTuneReq.get(i) + "|" + responseTuneReq.get(i + 1) + ">";
-            }
-
-            return finalResponseProcessed;
+            return byteArray;
         }
     }
 }
