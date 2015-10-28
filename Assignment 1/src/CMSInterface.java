@@ -181,7 +181,11 @@ public class CMSInterface {
                     	response = processResponse(readArray);
                         
                         for(int i = 0; i < response.length; i += 2){
-                        	string += "<" + response[i] + "|" + response[i + 1] + ">";                     
+                        	//TODO depending on the command code response
+                        	//we need to show different messages
+                        	//maybe having a different function for each one?
+                        	//the responses aren't all equal, that's the problem...
+                        	string += "<"+responseASCIIConversion(i)+"[" + response[i] + "|" + response[i + 1] + "]>";                     
                         }
                         
                         string += "\n";
@@ -191,6 +195,21 @@ public class CMSInterface {
                 
                 semaphore.take();
             }
+        }
+        
+        private String responseASCIIConversion(int i){
+        	switch (i) {
+			case 0:
+				return "lenght";
+			case 2:
+				return "dest_id";
+			case 4:
+				return "src_id";
+			case 6:
+				return "command_code";
+			default:
+				return "other";
+			}
         }
         
         private void processParListMessage(byte... readArray){
