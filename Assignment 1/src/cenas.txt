@@ -1,0 +1,14 @@
+ter 4 variáveis:
+- length da mensagem actual
+- iterador com os bytes lidos da mensagem
+- número de mensagens a ler
+- mensagem actual
+
+
+para saber o número da mensagem actual e das mensagens lidas, ver 5º <>, length ver 1º <>.
+tratar do 1b-ff, já que se tiver tamanho 40 e houverem 2 ff, ele vai ter tamanho 42, mas é suposto ignorar esses ff.
+
+
+
+
+o outofbounds minado é quando existe 1b de início de mensagem, mas a mensagem está noutro bloco recebido
