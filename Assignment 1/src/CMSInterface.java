@@ -12,7 +12,8 @@ import java.nio.ByteBuffer;
  */
 
 public class CMSInterface {
-    private static byte START_MESSAGE = 0x1b;
+    private final static byte START_MESSAGE = 0x1b;
+    private final static byte ESCAPE_MESSAGE = (byte)0xff;
     private final static int DEFAULT_LENGTH = 6; /* LENGTH + SRC_ID + DST_ID */
     private final static int DEFAULT_SIZE = 2;
 
@@ -197,7 +198,7 @@ public class CMSInterface {
         	
         	if(totalNumberParListMessages == 0){
         		temp = new byte[2];
-        		temp[0] = readArray[0];
+        		temp[0] = readArray[2];
         		temp[1] = readArray[1];
         		
         		totalNumberParListMessages = readArray[9];
@@ -207,20 +208,72 @@ public class CMSInterface {
         	}
         	
         	for(int i = 0; i < readArray.length; i += 2){
+        		if(actualParListMessageLength == totalParListMessageLength){
+        			if(i + 1 >= readArray.length){
+        				break;
+        			}
+        			
+        			actualNumberParListMessage = 1;
+        			++i;
+        			++actualNumberParListMessage;
+        			
+        			temp = new byte[2];
+            		temp[0] = readArray[i + 1];
+            		temp[1] = readArray[i];
+            		totalParListMessageLength = ByteBuffer.wrap(temp).getShort();
+            		processedParListMessage += "\n";
+                    _app.appendText(processedParListMessage);
+                    processedParListMessage = "";
+        		}        	
         		
+        		if(readArray[i] == START_MESSAGE){
+        			++i;
+        			
+        			if(i >= readArray.length){
+        				break;
+        			}
+        			
+        			else if(readArray[i] == ESCAPE_MESSAGE){
+        				processedParListMessage += "<" + readArray[i + 1] + "|" + readArray[i - 1] + ">";
+        			}
+        			
+        			else{
+        				processedParListMessage += "<" + readArray[i + 1] + "|" + readArray[i] + ">";
+        			}        			
+        		}
+        		
+        		else{
+        			processedParListMessage += "<" + readArray[i + 1] + "|" + readArray[i] + ">";
+        		}
+        		
+        		actualNumberParListMessage += 2;
+        	}
+        	
+        	if(actualNumberParListMessage == totalNumberParListMessages){
+        		processedParListMessage = "";
+        		isParList = false;
+        		actualNumberParListMessage = 0;
+        		totalNumberParListMessages = 0;
+        		actualParListMessageLength = 0;
+        		totalParListMessageLength = 0;
         	}
         }
 
         private byte[] processResponse(byte... response){
-            byte[] byteArray = new byte[response.length];
+            byte[] temp, byteArray;        	
 
             if(response == null || response[0] != 0x1b){
                 return null;
             }
             
+            temp = new byte[2];
+            temp[0] = response[2];
+            temp[1] = response[1];
+            byteArray = new byte[ByteBuffer.wrap(temp).getShort()];
+            
             for(int i = 1, j = 0; i < response.length; i += 2, j += 2){
-                if(response[i] == 0x1b){
-                    if(response[i + 1] == 0xff){
+                if(response[i] == START_MESSAGE){
+                    if(response[i + 1] == ESCAPE_MESSAGE){
                         byteArray[j] = response[i + 2];
                         ++i;
                     }
