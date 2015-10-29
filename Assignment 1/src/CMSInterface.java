@@ -25,7 +25,7 @@ public class CMSInterface {
     private static int actualParListMessageLength = 0;
     private static int totalParListMessageLength = 0;
     private static short totalNumberParListMessages = 0;
-    private static int actualNumberParListMessage = 0;
+    private static int actualNumberParListMessage = 1;
     private static String processedParListMessage = "";
 
     public CMSInterface(){
@@ -196,7 +196,6 @@ public class CMSInterface {
                         
                         string += "\n";
                         _app.appendText(string);
-                        System.out.println(string);
                     }
                 }
 
@@ -265,15 +264,16 @@ public class CMSInterface {
         		actualParListMessageLength = 0;
         	}
         	
-        	for(int i = 0; i < readArray.length; i += 2){
+        	for(int i = 0; i < readArray.length; i += 2){        		        		
         		if(actualParListMessageLength == totalParListMessageLength){
-        			if(i + 1 >= readArray.length){
+        			if(i + 2 >= readArray.length){
         				break;
         			}
         			
-        			actualNumberParListMessage = 1;
         			++i;
+        		
         			++actualNumberParListMessage;
+            		actualParListMessageLength = 0;
         			
         			temp = new byte[2];
             		temp[0] = readArray[i + 1];
@@ -288,18 +288,22 @@ public class CMSInterface {
         			++i;
         			
         			if(i >= readArray.length){
+        				totalParListMessageLength = 0;
+        				actualParListMessageLength = 0;
         				break;
         			}
         			
         			else if(readArray[i] == ESCAPE_MESSAGE){
         				if(readArray.length != i+1){
-        				processedParListMessage += "<"+ responseASCIIConversion(i+1, Utils.PAR_LIST_RES) + "=" + readArray[i + 1] + "|" + readArray[i - 1] + ">";
-        			}}
+        					processedParListMessage += "<"+ responseASCIIConversion(i+1, Utils.PAR_LIST_RES) + "=" + readArray[i + 1] + "|" + readArray[i - 1] + ">";
+        				}
+        			}
         			
         			else{
         				if(readArray.length != i+1){
-        				processedParListMessage += "<" + responseASCIIConversion(i+1, Utils.PAR_LIST_RES) + "=" + readArray[i + 1] + "|" + readArray[i] + ">";
-        			}}
+        					processedParListMessage += "<" + responseASCIIConversion(i+1, Utils.PAR_LIST_RES) + "=" + readArray[i + 1] + "|" + readArray[i] + ">";
+        				}
+        			}
         		}
         		
         		else{
@@ -307,19 +311,30 @@ public class CMSInterface {
         				processedParListMessage += "<" + responseASCIIConversion(i+1, Utils.PAR_LIST_RES) + "=" + readArray[i + 1] + "|" + readArray[i] + ">";
         			}
         		}
-        		actualNumberParListMessage += 2;
+        		
+        		actualParListMessageLength += 2;
         	}
-        	   
-        	System.out.println(actualNumberParListMessage +" - "+ totalNumberParListMessages);
+        	
+        	System.out.println(actualNumberParListMessage + " - " + totalNumberParListMessages);
+        	System.out.println(actualParListMessageLength + " - " + totalParListMessageLength + "\n");
+        	
+        	if(actualParListMessageLength == totalParListMessageLength){
+    			++actualNumberParListMessage;
+        		actualParListMessageLength = 0;
+    			
+        		processedParListMessage += "\n";
+                _app.appendText(processedParListMessage);
+                processedParListMessage = "";
+    		}
         	
         	if(actualNumberParListMessage == totalNumberParListMessages){
         		System.out.println("OUT");
         		processedParListMessage = "";
         		isParList = false;
-        		actualNumberParListMessage = 0;
+        		actualNumberParListMessage = 1;
         		totalNumberParListMessages = 0;
         		actualParListMessageLength = 0;
-        		totalParListMessageLength = 0;
+        		totalParListMessageLength = 0;        	
         	}
         }
 
