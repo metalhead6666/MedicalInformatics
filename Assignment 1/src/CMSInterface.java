@@ -185,31 +185,70 @@ public class CMSInterface {
                         	//we need to show different messages
                         	//maybe having a different function for each one?
                         	//the responses aren't all equal, that's the problem...
-                        	string += "<"+responseASCIIConversion(i)+"[" + response[i] + "|" + response[i + 1] + "]>";                     
+                        	if(response[6] == Utils.CONNECT_RES || response[7] == Utils.CONNECT_RES){
+                            	string += "<"+responseASCIIConversion(i, Utils.CONNECT_RES)+"=[" + response[i] + "|" + response[i + 1] + "]>";                     
+
+                        	}
+                        	else if(response[6] == Utils.TUNE_RES || response[7] == Utils.TUNE_RES){
+                            	string += "<"+responseASCIIConversion(i, Utils.TUNE_RES)+"=[" + response[i] + "|" + response[i + 1] + "]>";                     
+                        	}
                         }
                         
                         string += "\n";
                         _app.appendText(string);
+                        System.out.println(string);
                     }
                 }
-                
+
                 semaphore.take();
             }
         }
         
-        private String responseASCIIConversion(int i){
-        	switch (i) {
-			case 0:
-				return "lenght";
-			case 2:
-				return "dest_id";
-			case 4:
-				return "src_id";
-			case 6:
-				return "command_code";
-			default:
-				return "other";
-			}
+        private String responseASCIIConversion(int i, int code){
+        	try{
+	        	switch (i) {
+				case 0:
+					return "length";
+				case 2:
+					return "dst_id";
+				case 4:
+					return "src_id";
+				case 6:
+					return "command_code";
+				}
+	        	
+	        	if(code == Utils.CONNECT_RES){
+	        		switch (i){
+		        		case 8:
+		        			return "window_size";
+		        		case 10:
+		        			return "compat";
+		        		case 12:
+		        			return "error";
+	        		}
+	        	}
+	        	else if (code == Utils.TUNE_RES){
+	        		switch (i){
+		        		case 8:
+		        			return "tune_id";
+		        		default:
+		        			return "message";
+	        		}
+	        	}
+	        	
+	        	else if (code == Utils.PAR_LIST_RES){
+	        		switch (i){
+		        		case 8:
+		        			return "actual|total";
+		        		default:
+		        			return "message";
+	        		}
+	        	}
+	        	
+	        	return "none";
+        	} catch (Exception e){
+        		return "e";
+        	}
         }
         
         private void processParListMessage(byte... readArray){
@@ -253,22 +292,28 @@ public class CMSInterface {
         			}
         			
         			else if(readArray[i] == ESCAPE_MESSAGE){
-        				processedParListMessage += "<" + readArray[i + 1] + "|" + readArray[i - 1] + ">";
-        			}
+        				if(readArray.length != i+1){
+        				processedParListMessage += "<"+ responseASCIIConversion(i+1, Utils.PAR_LIST_RES) + "=" + readArray[i + 1] + "|" + readArray[i - 1] + ">";
+        			}}
         			
         			else{
-        				processedParListMessage += "<" + readArray[i + 1] + "|" + readArray[i] + ">";
-        			}        			
+        				if(readArray.length != i+1){
+        				processedParListMessage += "<" + responseASCIIConversion(i+1, Utils.PAR_LIST_RES) + "=" + readArray[i + 1] + "|" + readArray[i] + ">";
+        			}}
         		}
         		
         		else{
-        			processedParListMessage += "<" + readArray[i + 1] + "|" + readArray[i] + ">";
+        			if(readArray.length != i+1){
+        				processedParListMessage += "<" + responseASCIIConversion(i+1, Utils.PAR_LIST_RES) + "=" + readArray[i + 1] + "|" + readArray[i] + ">";
+        			}
         		}
-        		
         		actualNumberParListMessage += 2;
         	}
+        	   
+        	System.out.println(actualNumberParListMessage +" - "+ totalNumberParListMessages);
         	
         	if(actualNumberParListMessage == totalNumberParListMessages){
+        		System.out.println("OUT");
         		processedParListMessage = "";
         		isParList = false;
         		actualNumberParListMessage = 0;

@@ -39,6 +39,7 @@ public class Utils {
     static int PAR_LIST_RES = 12;
 
     static int TUNE_REQ = 13;
+    static int TUNE_RES = 14;
 
     /**
      * Lists all available communication ports (COM and LPT) on this machine
