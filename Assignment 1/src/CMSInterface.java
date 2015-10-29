@@ -192,6 +192,10 @@ public class CMSInterface {
                         	else if(response[6] == Utils.TUNE_RES || response[7] == Utils.TUNE_RES){
                             	string += "<"+responseASCIIConversion(i, Utils.TUNE_RES)+"=[" + response[i] + "|" + response[i + 1] + "]>";                     
                         	}
+                        	
+                        	else if(response[6] == Utils.DISCONNECT_RES || response[7] == Utils.DISCONNECT_RES){
+                            	string += "<"+responseASCIIConversion(i, Utils.DISCONNECT_RES)+"=[" + response[i] + "|" + response[i + 1] + "]>";                     
+                        	}
                         }
                         
                         string += "\n";
@@ -226,6 +230,14 @@ public class CMSInterface {
 		        			return "error";
 	        		}
 	        	}
+	        	else if (code == Utils.DISCONNECT_RES){
+	        		switch (i){
+		        		case 8:
+		        			return "resp";
+		        		default:
+		        			return "noneD";
+	        		}
+	        	}
 	        	else if (code == Utils.TUNE_RES){
 	        		switch (i){
 		        		case 8:
@@ -234,7 +246,6 @@ public class CMSInterface {
 		        			return "message";
 	        		}
 	        	}
-	        	
 	        	else if (code == Utils.PAR_LIST_RES){
 	        		switch (i){
 		        		case 8:
