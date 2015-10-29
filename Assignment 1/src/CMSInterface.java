@@ -315,9 +315,6 @@ public class CMSInterface {
         		actualParListMessageLength += 2;
         	}
         	
-        	System.out.println(actualNumberParListMessage + " - " + totalNumberParListMessages);
-        	System.out.println(actualParListMessageLength + " - " + totalParListMessageLength + "\n");
-        	
         	if(actualParListMessageLength == totalParListMessageLength){
     			++actualNumberParListMessage;
         		actualParListMessageLength = 0;
@@ -328,7 +325,6 @@ public class CMSInterface {
     		}
         	
         	if(actualNumberParListMessage == totalNumberParListMessages){
-        		System.out.println("OUT");
         		processedParListMessage = "";
         		isParList = false;
         		actualNumberParListMessage = 1;
