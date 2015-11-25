@@ -13,7 +13,7 @@ import fr.apteryx.imageio.dicom.Plugin;
 public class ReadDicomDir {
 
     Vector atributosExames, frameTime;
-    Vector<DataSet> filesExames;
+    Vector<Object> filesExames;
 
 
     public ReadDicomDir() {
@@ -38,7 +38,6 @@ public class ReadDicomDir {
         FileSet.Directory rootDirectory = fileSet.getRootDirectory();
 
         for (int i = 0; i < rootDirectory.getNumRecords(); i++) {
-            System.out.println("======= " + (i + 1) + "/" + rootDirectory.getNumRecords() + " =======");
             FileSet.Record record = rootDirectory.getRecord(i);
 
             if (record.getType().equals("PATIENT")) {
@@ -78,7 +77,8 @@ public class ReadDicomDir {
 
                                         Atributes atributes = new Atributes(patient, study, series, image);
                                         atributosExames.add(atributes);
-                                        filesExames.add(image);
+
+                                        filesExames.add(record3.getAttribute(Tag.ReferencedFileID));
                                     }
                                 }
                             }

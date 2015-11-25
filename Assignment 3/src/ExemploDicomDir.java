@@ -1,15 +1,19 @@
-import java.awt.Color;
-import java.awt.Dimension;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
+import java.io.File;
+import java.io.IOException;
+import java.util.Arrays;
+import java.util.Iterator;
+import java.util.List;
 import java.util.Vector;
 
-import fr.apteryx.imageio.dicom.Tag;
-import fr.apteryx.imageio.dicom.DataSet;
+import fr.apteryx.imageio.dicom.*;
 
 import javax.imageio.ImageIO;
-import javax.swing.DefaultListSelectionModel;
-import javax.swing.JOptionPane;
-import javax.swing.JScrollPane;
-import javax.swing.JTable;
+import javax.imageio.stream.FileImageInputStream;
+import javax.swing.*;
 import javax.swing.DefaultListSelectionModel;
 import javax.swing.event.ListSelectionEvent;
 import javax.swing.event.ListSelectionListener;
@@ -62,7 +66,7 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
 
         setDefaultCloseOperation(javax.swing.WindowConstants.EXIT_ON_CLOSE);
         setResizable(false);
-        txtPath.setText("/home/metalhead/Dropbox/All_UC_Stuff/5_ano/1_semestre/IM/Trabalhos/TP3/Normais/");
+        txtPath.setText("D:\\Normais\\");
         txtPath.setName("txtPath");
 
         lblTitle.setText("DicomDir Path:");
@@ -260,11 +264,73 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
         if (auxiliar.equals(list) && !e.getValueIsAdjusting()) {
             Atributes attTemp = (Atributes) atributosExames.elementAt(e.getFirstIndex());
             txtArea.setText(attTemp.regImage.toString());
-        }
 
-        for (int i = 0; i < fileExames.size(); i++) {
-            System.out.println("=== " + i + "/" + fileExames.size() + " ===");
-            System.out.println(fileExames.get(i).toString());
+            String[] temp = (String[]) fileExames.get(e.getFirstIndex());
+
+            File f = new File(txtPath.getText() + "\\" + temp[0] + "\\" + temp[1]);
+            Iterator read = ImageIO.getImageReadersByFormatName("dicom");
+            final DicomReader dicomReader = (DicomReader) read.next();
+
+            if(timer != null){
+                timer.stop();
+            }
+
+
+            if(jf == null){
+                jf = new JFrame();
+            }
+            else{
+                jf.remove(panel);
+            }
+
+            panel = new JPanel();
+
+            try {
+                dicomReader.setInput(new FileImageInputStream(f));
+                DicomMetadata dmd = dicomReader.getDicomMetadata();
+                int mill = dmd.getAttributeInt(Tag.FrameTime);
+                final int num = dmd.getAttributeInt(Tag.NumberOfFrames);
+
+                System.out.println("Num: " + num);
+
+
+                jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+                final BufferedImage[] bImage = new BufferedImage[num];
+
+                for (int i = 0; i < num; ++i) {
+                    bImage[i] = dmd.applyGrayscaleTransformations(dicomReader.read(i), 0);
+                }
+
+                image2 = bImage[0];
+
+                ActionListener timerAsk = new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        try{
+                            image2 = bImage[x];
+                        } catch (ArrayIndexOutOfBoundsException arrayE){
+                            x = 0;
+                        }
+
+                        panel.getGraphics().drawImage(image2, 0, 0, null);
+
+                        repaint();
+
+                        x++;
+                        x = x % num;
+                    }
+                };
+
+                timer = new Timer(mill, timerAsk);
+                timer.start();
+
+                jf.getContentPane().add(panel);
+                panel.setPreferredSize(new Dimension(image2.getWidth(), image2.getHeight()));
+                jf.pack();
+                jf.setVisible(true);
+            } catch (IOException e1) {
+            }
         }
     }
 
@@ -290,6 +356,11 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
     private javax.swing.JTable tableExames;
     private javax.swing.JTextArea txtArea;
     private javax.swing.JTextField txtPath;
+    private int x;
+    private JPanel panel;
+    private JFrame jf;
+    private BufferedImage image2;
+    private Timer timer;
     // End of variables declaration//GEN-END:variables
 
 }
