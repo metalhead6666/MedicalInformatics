@@ -272,15 +272,15 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
             Iterator read = ImageIO.getImageReadersByFormatName("dicom");
             final DicomReader dicomReader = (DicomReader) read.next();
 
-            if(timer != null){
+            if (timer != null) {
                 timer.stop();
+                x = 0;
             }
 
 
-            if(jf == null){
+            if (jf == null) {
                 jf = new JFrame();
-            }
-            else{
+            } else {
                 jf.remove(panel);
             }
 
@@ -309,21 +309,21 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
                 ActionListener timerAsk = new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        if(!isPaused){
-                            try{
-                                image2 = bImage[x];
-                            } catch (ArrayIndexOutOfBoundsException arrayE){
-                                x = 0;
-                            }
 
-                            try{
-                                panel.getGraphics().drawImage(image2, 0, 50, null);
-                            }catch (Exception e1){
+                        try {
+                            image2 = bImage[x];
+                        } catch (ArrayIndexOutOfBoundsException arrayE) {
+                            x = 0;
+                        }
 
-                            }
+                        try {
+                            panel.getGraphics().drawImage(image2, 0, 50, null);
+                        } catch (Exception e1) {
 
-                            repaint();
+                        }
 
+                        repaint();
+                        if (!isPaused) {
                             ++x;
                             x = x % num;
                         }
@@ -335,6 +335,7 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
 
                 JButton playPauseButton = new JButton("Pause/Play");
                 JButton stopButton = new JButton("Stop");
+                JButton closeButton = new JButton("Close");
 
                 playPauseButton.addActionListener(new ActionListener() {
                     @Override
@@ -342,9 +343,17 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
                         isPaused = !isPaused;
                     }
                 });
-                panel.add(playPauseButton);
 
                 stopButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        x = 0;
+                        isPaused = true;
+                    }
+                });
+                panel.add(playPauseButton);
+
+                closeButton.addActionListener(new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
                         panel.removeAll();
@@ -353,6 +362,8 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
                 });
                 stopButton.setLayout(null);
                 stopButton.setBounds(100, 100, 5, 5);
+
+                panel.add(closeButton);
                 panel.add(stopButton);
 
                 jf.getContentPane().add(panel);
