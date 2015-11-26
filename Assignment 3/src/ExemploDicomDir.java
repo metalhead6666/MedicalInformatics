@@ -286,13 +286,14 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
             panel = new JPanel();
 
             try {
+                isPaused = false;
+
                 dicomReader.setInput(new FileImageInputStream(f));
                 DicomMetadata dmd = dicomReader.getDicomMetadata();
                 int mill = dmd.getAttributeInt(Tag.FrameTime);
                 final int num = dmd.getAttributeInt(Tag.NumberOfFrames);
 
-                System.out.println("Num: " + num);
-
+                //System.out.println("Num: " + num);
 
                 jf.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
 
@@ -307,32 +308,63 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
                 ActionListener timerAsk = new ActionListener() {
                     @Override
                     public void actionPerformed(ActionEvent e) {
-                        try{
-                            image2 = bImage[x];
-                        } catch (ArrayIndexOutOfBoundsException arrayE){
-                            x = 0;
+                        if(!isPaused){
+                            try{
+                                image2 = bImage[x];
+                            } catch (ArrayIndexOutOfBoundsException arrayE){
+                                x = 0;
+                            }
+
+                            try{
+                                panel.getGraphics().drawImage(image2, 0, 50, null);
+                            }catch (Exception e1){
+
+                            }
+
+                            repaint();
+
+                            ++x;
+                            x = x % num;
                         }
-
-                        panel.getGraphics().drawImage(image2, 0, 0, null);
-
-                        repaint();
-
-                        x++;
-                        x = x % num;
                     }
                 };
 
                 timer = new Timer(mill, timerAsk);
                 timer.start();
 
+                JButton playPauseButton = new JButton("Pause/Play");
+                JButton stopButton = new JButton("Stop");
+
+                playPauseButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        isPaused = !isPaused;
+                    }
+                });
+                panel.add(playPauseButton);
+
+                stopButton.addActionListener(new ActionListener() {
+                    @Override
+                    public void actionPerformed(ActionEvent e) {
+                        panel.removeAll();
+                        jf.dispose();
+                    }
+                });
+                stopButton.setLayout(null);
+                stopButton.setBounds(100, 100, 5, 5);
+                panel.add(stopButton);
+
                 jf.getContentPane().add(panel);
-                panel.setPreferredSize(new Dimension(image2.getWidth(), image2.getHeight()));
-                jf.pack();
+                panel.setBounds(300, 300, image2.getWidth(), image2.getHeight());
+                jf.setSize(new Dimension(image2.getWidth(), image2.getHeight() + 90));
                 jf.setVisible(true);
             } catch (IOException e1) {
+
             }
         }
     }
+
+    private boolean isPaused;
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JMenuItem aboutMenuItem;
@@ -362,5 +394,4 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
     private BufferedImage image2;
     private Timer timer;
     // End of variables declaration//GEN-END:variables
-
 }
