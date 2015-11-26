@@ -262,11 +262,12 @@ public class ExemploDicomDir extends javax.swing.JFrame implements ListSelection
         //                examProp.frameAtributos.dispose();
         DefaultListSelectionModel auxiliar = (DefaultListSelectionModel) (e.getSource());
         if (auxiliar.equals(list) && !e.getValueIsAdjusting()) {
-            Atributes attTemp = (Atributes) atributosExames.elementAt(e.getFirstIndex());
+            Atributes attTemp = (Atributes) atributosExames.elementAt(auxiliar.getMaxSelectionIndex());
             txtArea.setText(attTemp.regImage.toString());
 
-            String[] temp = (String[]) fileExames.get(e.getFirstIndex());
+            String[] temp = (String[]) fileExames.get(auxiliar.getMaxSelectionIndex());
 
+            System.out.println(temp[0] + " - " + temp[1] + " - " + auxiliar.getMaxSelectionIndex());
             File f = new File(txtPath.getText() + "\\" + temp[0] + "\\" + temp[1]);
             Iterator read = ImageIO.getImageReadersByFormatName("dicom");
             final DicomReader dicomReader = (DicomReader) read.next();
