@@ -1,4 +1,4 @@
-function [ finalNum ] = noiseDetect(ECG, STR)
+function [ finalNum ] = noiseDetect(ECG)
 %NOISEDETECT Summary of this function goes here
 %   Simple function that receives ECG data and check if it has noise.
 %   To give some extra information, it will generate gaussian noise to that
@@ -16,7 +16,7 @@ ecgDiff = diff(ECG);
 
 subplot(2, 2, 2)
 hist(ecgDiff, 5);
-title('Normal -',STR,' - Histogram');
+title('Normal - Histogram');
 
 h = hist(ecgDiff, 5);
 finalNum = (h(4)/N) * 100;
