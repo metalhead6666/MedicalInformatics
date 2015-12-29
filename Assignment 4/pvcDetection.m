@@ -3,7 +3,7 @@ function pvcDetection(ECG, R, fs)
        
     AREA = [];
     mean_dr = mean(diff(R));
-    for i = 2 : length(R)
+    for i = 1 : length(R)
         try
             qrs = ECG(R(i) - 0.1 * mean_dr : R(i) + 0.1 * mean_dr);
         catch

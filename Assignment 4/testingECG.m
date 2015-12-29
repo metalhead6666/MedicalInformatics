@@ -4,7 +4,7 @@ clear all
 warning('off','all')
 warning
 
-ecg = load('ecgST.dat');
+ecg = load('ecg1.dat');
 
 N = length(ecg);
 fs = 250;
