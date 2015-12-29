@@ -1,31 +1,25 @@
-function pvcDetection()
-    ecg = load('ecgPVC.dat');
-
-    N = length(ecg);
-    fs = 250;
+function pvcDetection(ECG, R, fs)
     limit = 160;    
-    period = int32(N/fs);    
-    seconds = 5;
-    position = int32(fs*seconds);    
-    maximum = period/seconds;
-
-    for window=0 : maximum - 1        
-        ecgwindow = ecg(window*position+1 : (window+1)*position);        
-        area = [];
-        
-        R = mh_rpeakdetect(ecgwindow, fs);
-        mean_dr = mean(diff(R));
-
-        for i=2 : length(R)
-            qrs = ecgwindow(int8(R(i)-0.1*mean_dr) : int8(R(i)+0.1*mean_dr));
-            qrs = qrs - mean(qrs);
-            area = [area; sum(abs(qrs))];
+       
+    AREA = [];
+    mean_dr = mean(diff(R));
+    for i = 2 : length(R)
+        try
+            qrs = ECG(R(i) - 0.1 * mean_dr : R(i) + 0.1 * mean_dr);
+        catch
+            qrs = ECG(R(i) - 0.1 * mean_dr : length(ECG));
         end
-
-        na = length(area);
-        plot(1:na, area, 'g:', 1:na, area, 'bo', 1:na, limit * ones(1, na), 'r');
-        pause;
+        qrs = qrs - mean(qrs);
+        area = sum(abs(qrs));
+        if area > limit
+            disp('A wild PVC appears.')
+        end
+        AREA = [AREA; area];
     end
+
+    na = length(AREA);
+    plot(1:na, AREA, 'g:', 1:na, AREA, 'bo', 1:na, limit * ones(1, na), 'r');   
+    
         
     % figure(1)
     % plot(ecg);
