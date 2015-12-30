@@ -30,7 +30,7 @@ function analyzeECG(ecg)
 
             if isVT == 0
                 figure(5);
-                pvcDetection(ecg, R);
+                numberofPVC = pvcDetection(ecg, R);
                 fprintf('Number of PVC: %d\n', numberofPVC);
             end
         end
