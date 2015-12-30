@@ -1,9 +1,8 @@
-function pvcDetection(ECG, R, fs)
-    limit = 160;    
-       
+function pvcDetection(ECG, R, fs)  
     AREA = [];
     mean_dr = mean(diff(R));
-    for i = 1 : length(R)
+    
+    for i = 2 : length(R)
         try
             qrs = ECG(int32(R(i) - 0.1 * mean_dr) : int32(R(i) + 0.1 * mean_dr));
         catch
@@ -13,9 +12,9 @@ function pvcDetection(ECG, R, fs)
         area = sum(abs(qrs));
         AREA = [AREA; area];
     end
-
+    
     na = length(AREA);
-    plot(1:na, AREA, 'g:', 1:na, AREA, 'bo', 1:na, limit * ones(1, na), 'r');   
+    plot(1:na, AREA, 'g:', 1:na, AREA, 'bo');   
     
         
     % figure(1)

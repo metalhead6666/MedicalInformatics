@@ -1,9 +1,14 @@
-function vtDetection(ECG, fs)
-    ArModel = ar(ECG, 4);
-    A = ArModel.A;
-    rootsAr = roots(A);
+function vtDetection(ECG, R)
+    % ArModel = ar(ECG, 4);
+    % A = ArModel.A;
+    % rootsAr = roots(A);
 
-    zplane(rootsAr);
+    % zplane(rootsAr);
+    
+    [w, fs] = pwelch(ECG);
+
+    temp = w(1 : length(w)/8);
+    plot(temp, 'r');
     
     %plot(locs, w(locs), 'ro');
 end
