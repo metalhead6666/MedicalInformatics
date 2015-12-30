@@ -6,7 +6,7 @@ function [ finalNum ] = noiseDetect(ECG)
 %   The second argument is the ECG name (PVC, VT, Noise, Normal, etc).
 %   Returns the value of the % of correct values.
 
-N = length(ECG);
+n = length(ECG);
 
 %%%%%%%%%%%% ECG to evaluate %%%%%%%%%%%%
 subplot(2, 2, 1)
@@ -19,8 +19,8 @@ hist(ecgDiff, 5);
 title('Normal - Histogram');
 
 h = hist(ecgDiff, 5);
-finalNum = (h(4)/N) * 100;
-strToGive = num2str((h(4)/N) * 100);
+finalNum = (h(3)/n) * 100;
+strToGive = num2str((h(3)/n) * 100);
 xlabel(strToGive);
 
 %%%%%%%%%%%% Gaussian noise to check the differences %%%%%%%%%%%%
@@ -35,7 +35,7 @@ hist(ecgDiff, 5);
 title('Noise ECG (Gaussian Noise) - Histogram');
 
 h = hist(ecgDiff, 5);
-strToCompare = num2str((h(4)/N) * 100);
+strToCompare = num2str((h(3)/n) * 100);
 xlabel(strToCompare)
 end
 

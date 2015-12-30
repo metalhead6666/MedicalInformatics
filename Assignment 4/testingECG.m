@@ -4,13 +4,16 @@ clear all
 warning('off','all')
 warning
 
-ecg = load('ecg1.dat');
+%ecg = load('ecgnoise.dat');
+%load 'DATARR//DARR_003.mat'
+load 'DATPVC//DPVC_116.mat'
+ecg = DAT.ecg;
 
 N = length(ecg);
-fs = 250;
+fs = 125;
 
 period = int32(N/fs);    
-seconds = 5;
+seconds = 10;
 position = int32(fs*seconds);    
 maximum = period/seconds;
 
@@ -23,15 +26,18 @@ for window = 0 : maximum - 1
     nWindow = length(ecgWindow);
     R = mh_rpeakdetect(ecgWindow, fs);
     
-    figure(2);
-    plot(1:nWindow, ecgWindow, 'g', R, ecgWindow(R), 'ro');
-    title('Display a part of the ECG');
+    %figure(2);
+    %plot(1:nWindow, ecgWindow, 'g', R, ecgWindow(R), 'ro');
+    %title('Display a part of the ECG');
     
-    figure(3);
-    pvcDetection(ecgWindow, R, fs);
+    %figure(3);
+    %pvcDetection(ecgWindow, R, fs);
     
-    figure(4);
-    noiseDetect(ecgWindow);
+    %figure(4);
+    %noiseDetect(ecgWindow);
+    
+    figure(1);  
+    vtDetection(ecgWindow, fs);
     pause;
 end
 

@@ -5,15 +5,12 @@ function pvcDetection(ECG, R, fs)
     mean_dr = mean(diff(R));
     for i = 1 : length(R)
         try
-            qrs = ECG(R(i) - 0.1 * mean_dr : R(i) + 0.1 * mean_dr);
+            qrs = ECG(int32(R(i) - 0.1 * mean_dr) : int32(R(i) + 0.1 * mean_dr));
         catch
-            qrs = ECG(R(i) - 0.1 * mean_dr : length(ECG));
+            qrs = ECG(abs(int32(R(i) - 0.1 * mean_dr)) : length(ECG));
         end
         qrs = qrs - mean(qrs);
         area = sum(abs(qrs));
-        if area > limit
-            disp('A wild PVC appears.')
-        end
         AREA = [AREA; area];
     end
 
