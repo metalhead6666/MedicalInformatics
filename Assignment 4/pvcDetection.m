@@ -1,6 +1,7 @@
-function pvcDetection(ECG, R, fs)  
+function [ pvc ] = pvcDetection(ECG, R, fs)  
     AREA = [];
     mean_dr = mean(diff(R));
+    pvc = 0;
     
     for i = 2 : length(R)
         try
@@ -14,8 +15,20 @@ function pvcDetection(ECG, R, fs)
     end
     
     na = length(AREA);
-    plot(1:na, AREA, 'g:', 1:na, AREA, 'bo');   
+    plot(1:na, AREA, 'g:', 1:na, AREA, 'bo');
+
+    pvcInWindow = diff(AREA);
     
+    meanArea = mean(AREA);
+    meanArea = meanArea + (meanArea * 0.1);
+    
+    for i = 1 : length(pvcInWindow) - 1
+        aux = pvcInWindow(i+1) - pvcInWindow(i);
+
+        if aux > meanArea
+            pvc = pvc + 1;
+        end
+    end
         
     % figure(1)
     % plot(ecg);
