@@ -1,7 +1,6 @@
-function [ pvc ] = pvcDetection(ECG, R, fs)  
+function [ pvc ] = pvcDetection(ECG, R)  
     AREA = [];
     mean_dr = mean(diff(R));
-    pvc = 0;
     
     for i = 2 : length(R)
         try
@@ -17,15 +16,15 @@ function [ pvc ] = pvcDetection(ECG, R, fs)
     na = length(AREA);
     plot(1:na, AREA, 'g:', 1:na, AREA, 'bo');
 
-    pvcInWindow = diff(AREA);
+    max_value = 1000;
+    limiar = 650;
+    normalize_value = max_value / max(AREA);
+    pvc = 0;
     
-    meanArea = mean(AREA);
-    meanArea = meanArea + (meanArea * 0.1);
-    
-    for i = 1 : length(pvcInWindow) - 1
-        aux = pvcInWindow(i+1) - pvcInWindow(i);
-
-        if aux > meanArea
+    for i = 1 : length(AREA)
+        value = (AREA(i)*normalize_value);
+        
+        if value > limiar
             pvc = pvc + 1;
         end
     end
