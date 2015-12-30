@@ -1,4 +1,4 @@
-function [ noise ] = noiseDetect(ECG)
+function noise = noiseDetect(ECG)
     %NOISEDETECT
     %   Simple function that receives ECG data and check if it has noise.
     %   To give some extra information, it will generate gaussian noise to that
@@ -8,7 +8,6 @@ function [ noise ] = noiseDetect(ECG)
 
     numHist = 5;
     valGet = 3;
-
     noise = -1;
 
     %%%%%%%%%%%% ECG to evaluate %%%%%%%%%%%%

@@ -1,4 +1,4 @@
-function [ pvc ] = pvcDetection(ECG, R)  
+function pvc = pvcDetection(ECG, R)  
     AREA = [];
     mean_dr = mean(diff(R));
     
@@ -8,9 +8,9 @@ function [ pvc ] = pvcDetection(ECG, R)
         catch
             qrs = ECG(abs(int32(R(i) - 0.1 * mean_dr)) : length(ECG));
         end
-        qrs = qrs - mean(qrs);
-        area = sum(abs(qrs));
-        AREA = [AREA; area];
+        
+        qrs = qrs - mean(qrs);        
+        AREA = [AREA; sum(abs(qrs))];
     end
     
     na = length(AREA);
@@ -21,10 +21,8 @@ function [ pvc ] = pvcDetection(ECG, R)
     normalize_value = max_value / max(AREA);
     pvc = 0;
     
-    for i = 1 : length(AREA)
-        value = (AREA(i)*normalize_value);
-        
-        if value > limiar
+    for i = 1 : length(AREA)    
+        if AREA(i) * normalize_value > limiar
             pvc = pvc + 1;
         end
     end
