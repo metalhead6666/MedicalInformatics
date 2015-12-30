@@ -39,7 +39,9 @@ else
         str = strcat('DATARR//', filename);
     end
     
-    load(str);    
+    load(str);
+    disp(str);
+    pause;
 end
 
 analyzeECG(DAT.ecg);
