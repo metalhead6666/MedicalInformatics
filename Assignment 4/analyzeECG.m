@@ -24,12 +24,11 @@ function analyzeECG(ecg)
         fprintf('Noise: %d\n', isNoise);
 
         if isNoise == 0
-            figure(4);
             isVT = vtDetection(ecg, R, seconds);
             fprintf('VT: %d\n', isVT);
 
             if isVT == 0
-                figure(5);
+                figure(4);
                 numberofPVC = pvcDetection(ecg, R);
                 fprintf('Number of PVC: %d\n', numberofPVC);
             end
@@ -50,26 +49,22 @@ function analyzeECG(ecg)
             fprintf('Noise: %d\n', isNoise);
 
             if isNoise == 0
-                figure(4);
                 isVT = vtDetection(ecg, R, seconds);
                 fprintf('VT: %d\n', isVT);
                 
                 if isVT == 0
-                    figure(5);
+                    figure(4);
                     numberofPVC = pvcDetection(ecg, R);
                     fprintf('Number of PVC: %d\n', numberofPVC);
                 else
-                    close(figure(5));
+                    close(figure(4));
                 end
             else
                 close(figure(4));
-                close(figure(5));
             end                                
             
             pause;
             clc
         end
     end
-
-    % plot(1:N, ecg, 'g', R, ecg(R), 'ro');
 end
