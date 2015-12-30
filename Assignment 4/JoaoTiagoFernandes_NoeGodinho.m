@@ -9,10 +9,21 @@ end
 
 if choice == 1
     % files used to analyze the application
-    load 'DATARR//DARR_022.mat';
-    load 'DATARR//DARR_029.mat';
-    load 'DATPVC//DPVC_106.mat';
-    load 'DATPVC//DPVC_210.mat';
+    filename = 0;
+    
+    while filename ~= 1 && filename ~= 2 && filename ~= 3 && filename ~= 4
+        filename = input('1-DARR_022\n2-DARR_029\n3-DPVC_106\n4-DPVC_210\n');
+    end
+    
+    if filename == 1
+        load 'DATARR//DARR_022.mat';
+    elseif filename == 2
+        load 'DATARR//DARR_029.mat';
+    elseif filename == 3
+        load 'DATPVC//DPVC_106.mat';
+    else
+        load 'DATPVC//DPVC_210.mat';
+    end
 else
     % choose a file randomly to test the application
     dirfiles = dir('DATARR');
@@ -28,7 +39,7 @@ else
         str = strcat('DATARR//', filename);
     end
     
-    load(str);
+    load(str);    
 end
 
 analyzeECG(DAT.ecg);
