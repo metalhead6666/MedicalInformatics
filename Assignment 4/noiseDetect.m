@@ -7,7 +7,7 @@ function noise = noiseDetect(ECG)
     %   Returns the value of the % of correct values.
 
     numHist = 5;
-    valGet = 3;
+    valGet = 4;
     noise = -1;
 
     %%%%%%%%%%%% ECG to evaluate %%%%%%%%%%%%
