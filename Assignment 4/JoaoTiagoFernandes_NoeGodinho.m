@@ -17,12 +17,16 @@ if choice == 1
     
     if filename == 1
         load 'DATARR//DARR_022.mat';
+        fs = 125;
     elseif filename == 2
         load 'DATARR//DARR_029.mat';
+        fs = 125;
     elseif filename == 3
         load 'DATPVC//DPVC_106.mat';
+        fs = 250;
     else
         load 'DATPVC//DPVC_210.mat';
+        fs = 250;
     end
 else
     % choose a file randomly to test the application
@@ -35,8 +39,10 @@ else
     
     if strcmp(filename(1:4),'DPVC') == 1
         str = strcat('DATPVC//', filename);
+        fs = 250;
     else
         str = strcat('DATARR//', filename);
+        fs = 125;
     end
     
     load(str);
@@ -44,4 +50,4 @@ else
     pause;
 end
 
-analyzeECG(DAT.ecg);
+analyzeECG(DAT.ecg, fs);

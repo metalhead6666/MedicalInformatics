@@ -1,6 +1,5 @@
-function analyzeECG(ecg)
+function analyzeECG(ecg, fs)
     N = length(ecg);
-    fs = 125;
 
     period = int32(N/fs);    
     seconds = 25;
