@@ -13,17 +13,23 @@ function pvc = pvcDetection(ECG, R)
         AREA = [AREA; sum(abs(qrs))];
     end
     
-    na = length(AREA);
-    plot(1:na, AREA, 'g:', 1:na, AREA, 'bo');
-
     max_value = 1000;
-    limiar = 650;
+    limiar = 100;
     normalize_value = max_value / max(AREA);
     pvc = 0;
     
-    for i = 1 : length(AREA)    
-        if AREA(i) * normalize_value > limiar
+    for i = 1 : length(AREA)
+        AREA(i) = AREA(i) * normalize_value;
+    end
+    
+    for i = 2 : length(AREA)
+        temp = AREA(i) - AREA(i-1);
+        
+        if temp > limiar
             pvc = pvc + 1;
         end
     end
+    
+    na = length(AREA);
+    plot(1:na, AREA, 'g:', 1:na, AREA, 'bo');
 end
