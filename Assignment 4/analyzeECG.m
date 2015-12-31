@@ -19,16 +19,16 @@ function analyzeECG(ecg, fs)
         title('Display a part of the ECG');
 
         figure(3);
-        isNoise = noiseDetect(ecg);
+        isNoise = noiseDetect(ecgWindow);
         fprintf('Noise: %d\n', isNoise);
 
         if isNoise == 0
-            isVT = vtDetection(ecg, R, seconds);
+            isVT = vtDetection(R, seconds);
             fprintf('VT: %d\n', isVT);
 
             if isVT == 0
                 figure(4);
-                numberofPVC = pvcDetection(ecg, R);
+                numberofPVC = pvcDetection(ecgWindow, R);
                 fprintf('Number of PVC: %d\n', numberofPVC);
             end
         end
@@ -44,16 +44,16 @@ function analyzeECG(ecg, fs)
             title('Display a part of the ECG');
 
             figure(3);
-            isNoise = noiseDetect(ecg);
+            isNoise = noiseDetect(ecgWindow);
             fprintf('Noise: %d\n', isNoise);
 
             if isNoise == 0
-                isVT = vtDetection(ecg, R, seconds);
+                isVT = vtDetection(R, seconds);
                 fprintf('VT: %d\n', isVT);
                 
                 if isVT == 0
                     figure(4);
-                    numberofPVC = pvcDetection(ecg, R);
+                    numberofPVC = pvcDetection(ecgWindow, R);
                     fprintf('Number of PVC: %d\n', numberofPVC);
                 else
                     close(figure(4));
